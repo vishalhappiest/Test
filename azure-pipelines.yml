@@ -15,3 +15,9 @@ jobs:
 - job: Secondjob
   steps:
   - bash: echo "Our Second Pipeline"
+   
+  - task: WhiteSource@21
+    inputs:
+      cwd: '$(System.DefaultWorkingDirectory)'
+      projectName: 'vishalhappiest.Test'
+      directScan: true
