@@ -1,6 +1,28 @@
-resource "azuredevops_build_definition" "Terraform-Build" {
-  project_id = azuredevops_project.tf-example.id
-  name = "Build Definition for forked-repo"
+resource "azuredevops_variable_group" "variablegroup" {
+  project_id   = var.Azure_ProjectID
+  name         = "Test Variable Group"
+  description  = "Test Variable Group Description"
+  allow_access = true
+
+  variable {
+    name = "solution"
+    value = "**/*.sln"
+            }
+  }
+
+resource "azuredevops_git_repository" "Terraform-Test-Repo" {
+  project_id = var.Azure_ProjectID
+  name       = var.Repo_Name
+  initialization {
+    init_type   = "Import"
+    source_type = "Git"
+    source_url  = var.GIT_Import_URL
+                  }
+}
+
+resource "azuredevops_build_definition" "Terraform-build" {
+  project_id = var.Azure_ProjectID
+  name = var.Pipeline_Name
   agent_pool_name = "Azure Pipelines"
 
   ci_trigger {
@@ -9,15 +31,9 @@ resource "azuredevops_build_definition" "Terraform-Build" {
 
   repository {
     repo_type = "TfsGit"
-    repo_id = data.azuredevops_git_repositories.forked-repo.repositories[0].id
-    branch_name = data.azuredevops_git_repositories.forked-repo.repositories[0].default_branch
+    repo_id = azuredevops_git_repository.Terraform-Test-Repo.id
+    branch_name = azuredevops_git_repository.Terraform-Test-Repo.default_branch
     yml_path = "azure-pipelines.yml"
   }
-
   variable_groups = [azuredevops_variable_group.variablegroup.id]
-
-  variable {
-    name = "solution"
-    value = "**/*.sln"
-  }
 }
